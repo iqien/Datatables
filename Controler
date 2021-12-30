@@ -1,0 +1,80 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Monitoring extends CI_Controller {
+	public function __construct()
+	{ 
+		parent::__construct();
+		$this->db = $this->load->database('default',TRUE);
+		$this->load->model('M_global');
+	}
+public function detile()
+	{
+		$this->load->view('data');
+		
+	}
+
+	public function get_all_data()
+	{
+		$columns = ['ORDER_ID'];
+		$order = $columns[$this->input->post('order')[0]['column']];
+		$dir = $this->input->post('order')[0]['dir'];
+		$search = [];
+		$where = [];
+
+		$limit = 0;
+		$start = 0;
+
+		$totalData = $this->M_global->getCount($limit, $start, $search, $order, $dir);
+
+		$searchColumn = $this->input->post('columns');
+		$isSearchColumn = false;
+
+		if (!empty($this->input->post('search')['value'])) {
+			$search_value = $this->input->post('search')['value'];
+			foreach ($columns as $column) {
+				$search[$column] = $search_value;
+			}
+			$totalFiltered = $this->M_global->getCount($limit, $start, $search, $order, $dir, $where);
+		} else {
+			$totalFiltered = $totalData;
+		}
+
+		$limit = $this->input->post('length');
+		$start = $this->input->post('start');
+		$datas = $this->M_global->getAllBy($limit, $start, $search, $order, $dir);
+		$new_data = [];
+		if (!empty($datas)) {
+			foreach ($datas as $key => $data) {
+				
+	
+				$nestedData['No'] 				= $start + $key + 1;
+				$nestedData['nama_am'] 			= $data->nama_am;
+				$nestedData['no_order'] 		= $data->ORDER_ID;
+				$nestedData['service_id'] 		= $data->LI_SID;
+				$nestedData['type_order'] 		= $data->ORDER_SUBTYPE;
+				$nestedData['constumer_name'] 	= $data->CUSTACCNTNAME;
+				$nestedData['acount_name'] 		= $data->SERVACCNTNAME;
+				$nestedData['product_name'] 	= $data->LI_PRODUCT_NAME;
+				$nestedData['milestone'] 		= $data->LI_MILESTONE;
+				$nestedData['status'] 			= $data->LI_STATUS;
+				$nestedData['status_order'] 	= $data->ORDER_STATUS;
+				$nestedData['biaya_otc'] 		= $data->LI_OTC_PRICE;
+				$nestedData['biaya_mrc'] 		= $data->LI_MONTHLY_PRICE;
+				$nestedData['ket_doc'] 			= $data->KETERANGAN;
+
+				$new_data[] = $nestedData;
+			}
+		}
+
+		$json_data = [
+			"draw" => intval($this->input->post('draw')),
+			"recordsTotal" => intval($totalData),
+			"recordsFiltered" => intval($totalFiltered),
+			"data" => $new_data,
+		];
+
+		echo json_encode($json_data);
+
+	}
+}
