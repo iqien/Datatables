@@ -70,7 +70,7 @@
 			processing: true,
 			serverSide: true,
 			ajax: {
-				url: '<?php echo base_url('Welcome/get_all_data') ?>',
+				url: '<?php echo base_url('Monitoring/get_all_data') ?>',
 				type: "POST",
 				data: function(data) {
 					data.am_id = '<?php echo $this->uri->segment(3) ?>';
